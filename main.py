@@ -21,6 +21,7 @@ for paths in path_list:
     stock_names.append(str(paths).split("\\")[-1].split(".c")[0])
 
 data = pd.read_csv(path_list[0], parse_dates=["Date"])
+data.sort_values(by="Date", ascending=False, inplace=True)
 
 fig = make_subplots(
     rows=6, cols=1,
