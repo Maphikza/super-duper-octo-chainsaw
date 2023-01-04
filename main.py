@@ -124,7 +124,7 @@ col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 
 with st.sidebar:
-    st.session_state["ticker"] = st.selectbox("Stocks", tuple(ticker_names))
+    st.session_state["ticker"] = st.selectbox("Stock Tickers", tuple(ticker_names))
     timeframe = st.selectbox("Analysis Timeframe", (
         "Maximum Dates", "10 years to date", "5 years to date", "2 Years to date", "1 year to date", "6 Months to date",
         "3 Months to date", "1 Month to date", "5 days to date", "1 day to date"))
