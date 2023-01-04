@@ -7,5 +7,5 @@ Stock Dashboard uses data scraped from yfinance to display information about sto
 
 <h1>Features</h1>
 
-Display graphs and tables of stock data using Plotly and Streamlit
-Show news articles related to a selected stock
+<p>Display graphs and tables of stock data using Plotly and Streamlit</p>
+<p>Show news articles related to a selected stock</p>
