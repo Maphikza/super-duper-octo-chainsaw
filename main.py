@@ -8,6 +8,7 @@ from plotly.subplots import make_subplots
 import yfinance as yf
 
 st.set_page_config(page_title="Stock Charts Test", layout="wide", initial_sidebar_state="auto")
+st.header('S&P 500')
 ticker_names = ['A', 'AAL', 'AAP', 'AAPL', 'ABBV', 'ABC', 'ABMD', 'ABT', 'ACGL', 'ACN', 'ADBE', 'ADI', 'ADM', 'ADP',
                 'ADSK', 'AEE', 'AEP', 'AES', 'AFL', 'AIG', 'AIZ', 'AJG', 'AKAM', 'ALB', 'ALGN', 'ALK', 'ALL', 'ALLE',
                 'AMAT', 'AMCR', 'AMD', 'AME', 'AMGN', 'AMP', 'AMT', 'AMZN', 'ANET', 'ANSS', 'AON', 'AOS', 'APA', 'APD',
@@ -118,96 +119,95 @@ def one_day_to_date():
     st.session_state["data"] = current_ticker(st.session_state.period)
 
 
-def my_figure(data):
-    my_fig = make_subplots(
-        rows=5, cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.03,
-        specs=[[{"type": "scatter"}],
-               [{"type": "scatter"}],
-               [{"type": "scatter"}],
-               [{"type": "scatter"}],
-               [{"type": "scatter"}]]
-    )
-
-    my_fig.add_trace(
-        go.Scatter(
-            x=data.Date,
-            y=data.Volume,
-            mode="lines",
-            name="Volume",
-        ),
-        row=5, col=1
-    )
-
-    my_fig.add_trace(
-        go.Scatter(
-            x=data.Date,
-            y=data.Open,
-            mode="lines",
-            name="Opening Price",
-        ),
-        row=4, col=1
-    )
-
-    my_fig.add_trace(
-        go.Scatter(
-            x=data.Date,
-            y=data.High,
-            mode="lines",
-            name="Opening Price",
-        ),
-        row=3, col=1
-    )
-
-    my_fig.add_trace(
-        go.Scatter(
-            x=data.Date,
-            y=data.Low,
-            mode="lines",
-            name="Opening Price",
-        ),
-        row=2, col=1
-    )
-
-    my_fig.add_trace(
-        go.Scatter(
-            x=data.Date,
-            y=data.Close,
-            mode="lines",
-            name="Closing Price",
-        ),
-        row=1, col=1
-    )
-    print(f"{st.session_state.ticker} b4 fig")
-    my_fig.update_layout(
-        height=900,
-        showlegend=True,
-        title_text=f"{st.session_state.ticker} Opening and Closing", template="plotly_dark",
-    )
-    return my_fig
+@st.cache
+def latest_news():
+    return st.session_state["news"]
 
 
-st.header('S&P 500 Stocks')
+col1, col2 = st.columns(2)
+col3, col4 = st.columns(2)
 
 with st.sidebar:
     st.session_state["ticker"] = st.selectbox("Stocks", tuple(ticker_names))
-    st.button("Maximum Dates", on_click=all_time)
-    st.button("10 years to date", on_click=ten_years_to_date)
-    st.button("5 years to date", on_click=five_years_to_date)
-    st.button("2 Years to date", on_click=two_years_to_date)
-    st.button("1 year to date", on_click=one_year_to_date)
-    st.button("6 Months to date", on_click=six_months_to_date)
-    st.button("3 Months to date", on_click=three_months_to_date)
-    st.button("1 Month to date", on_click=month_to_date)
-    st.button("5 days to date", on_click=five_days_to_date)
-    st.button("1 day to date", on_click=one_day_to_date)
+    timeframe = st.selectbox("Analysis Timeframe", (
+        "Maximum Dates", "10 years to date", "5 years to date", "2 Years to date", "1 year to date", "6 Months to date",
+        "3 Months to date", "1 Month to date", "5 days to date", "1 day to date"))
+    if timeframe == "Maximum Dates":
+        all_time()
+    elif timeframe == "10 years to date":
+        ten_years_to_date()
+    elif timeframe == "5 years to date":
+        five_years_to_date()
+    elif timeframe == "2 Years to date":
+        two_years_to_date()
+    elif timeframe == "1 year to date":
+        one_year_to_date()
+    elif timeframe == "6 Months to date":
+        six_months_to_date()
+    elif timeframe == "3 Months to date":
+        three_months_to_date()
+    elif timeframe == "1 Month to date":
+        month_to_date()
+    elif timeframe == "5 days to date":
+        five_days_to_date()
+    elif timeframe == "1 day to date":
+        one_day_to_date()
+    else:
+        all_time()
+    if "news" in st.session_state:
+        news_list = latest_news()
+        with st.expander("News".upper()):
+            for story in news_list:
+                st.markdown(f"<br>{story.get('title')}", unsafe_allow_html=True)
+                st.markdown(f"{story.get('publisher')}")
+                st.markdown(f"<a href='{story.get('link')}'>{story.get('title')[:20]}</a>", unsafe_allow_html=True)
 
-with st.container():
-    change_ticker()
-    current_data = st.session_state.data
-    fig = my_figure(current_data)
-    st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
-with st.container():
-    st.dataframe(current_data[["Date", "Open", "High", "Low", "Close", "Volume"]], width=1400)
+@st.cache
+def full_data():
+    ticker_ = yf.Ticker(st.session_state.ticker)
+    ticker_history = ticker_.history(period=st.session_state.period)
+    ticker_actions = ticker_.actions
+    institution_share_holders = ticker_.institutional_holders
+    news = ticker_.news
+    if "news" not in st.session_state:
+        st.session_state["news"] = news
+
+    return ticker_history, ticker_actions, institution_share_holders, news
+
+
+history, actions, institutional_holders, current_news = full_data()
+
+with col1:
+    fig_history = go.Figure(data=[go.Ohlc(x=history.index,
+                                          open=history['Open'], high=history['High'],
+                                          low=history['Low'], close=history['Close'])
+                                  ])
+
+    fig_history.update_layout(xaxis_rangeslider_visible=False, height=500, template="plotly_white",
+                              title=f"({st.session_state.ticker}) Stock Price Movement")
+    st.plotly_chart(fig_history, theme="streamlit", use_container_width=True)
+
+with col2:
+    fig_volumes = px.line(history, x=history.index, y=["Volume"], height=500,
+                          title=f"({st.session_state.ticker}) Volume",
+                          labels={"value": "Volume"},
+                          template="plotly_white")
+    st.plotly_chart(fig_volumes, use_container_width=True)
+
+with col3:
+    fig_dividends = px.line(actions, x=actions.index, y="Dividends", title=f"({st.session_state.ticker}) Dividends")
+    st.plotly_chart(fig_dividends, theme="streamlit", use_container_width=True)
+
+with col4:
+    fig_stock_splits = px.line(actions, x=actions.index, y="Stock Splits",
+                               title=f"({st.session_state.ticker}) Stock Splits")
+    st.plotly_chart(fig_stock_splits, theme="streamlit", use_container_width=True)
+
+with st.expander("Institutional Holders"):
+    institute_data = institutional_holders
+    st.dataframe(institute_data[["Holder", "Shares", "Date Reported", "% Out", "Value"]], width=1400)
+
+with st.expander("Numbers Table"):
+    data = history.reset_index().sort_values(by="Date", ascending=False)
+    st.dataframe(data[["Date", "Open", "High", "Low", "Close", "Volume"]], width=1400)
