@@ -1,4 +1,4 @@
-Stock Dashboard
+<h1>Streamlit Stock Dashboard</h1>
 
 Welcome to Stock Dashboard, a fun project to improve my Python and dashboard creation skills using data from Yahoo Finance.
 
