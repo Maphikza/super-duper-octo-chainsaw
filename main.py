@@ -5,8 +5,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import datetime as dt
-from pathlib import Path
 import yfinance as yf
 
 st.set_page_config(page_title="Stock Charts Test", layout="wide", initial_sidebar_state="auto")
@@ -46,114 +44,170 @@ ticker_names = ['A', 'AAL', 'AAP', 'AAPL', 'ABBV', 'ABC', 'ABMD', 'ABT', 'ACGL',
                 'VRSN', 'VRTX', 'VTR', 'VTRS', 'VZ', 'WAB', 'WAT', 'WBA', 'WBD', 'WDC', 'WEC', 'WELL', 'WFC', 'WHR',
                 'WM', 'WMB', 'WMT', 'WRB', 'WRK', 'WST', 'WTW', 'WY', 'WYNN', 'XEL', 'XOM', 'XRAY', 'XYL', 'YUM', 'ZBH',
                 'ZBRA', 'ZION', 'ZTS']
+
 set_ticker_names = " ".join(ticker_names)
 tickers = yf.Tickers(set_ticker_names)
+
+
+def change_ticker():
+    st.session_state["data"] = current_ticker(st.session_state.period)
+
+
+def current_ticker(entry):
+    return yf.Ticker(st.session_state.ticker).history(period=entry).reset_index().sort_values(by="Date",
+                                                                                              ascending=False)
+
 
 if "ticker" not in st.session_state:
     st.session_state["ticker"] = 'A'
 
+if "period" not in st.session_state:
+    st.session_state["period"] = "max"
 
-def change_ticker():
-    st.session_state.ticker = options
-
-def update_dates(start_, end_):
-    global data
-    data = data[data["Date"].between(str(start_), str(end_))]
-    return data
-# data = pd.read_csv(path_list[0], parse_dates=["Date"])
-data = tickers.tickers[st.session_state.ticker].history(period="max").reset_index()
-# data.sort_values(by="Date", ascending=False, inplace=True)
-year = datetime.date.today().year
-month = datetime.date.today().month
-day = datetime.date.today().day
+if "data" not in st.session_state:
+    st.session_state["data"] = current_ticker(st.session_state.period)
 
 
-# def update_dates(start_, end_):
-#     global data
-#     data = data[data["Date"].between(str(start_), str(end_))]
-#     return data
+def all_time():
+    st.session_state["period"] = "max"
+    st.session_state["data"] = current_ticker(st.session_state.period)
 
 
-fig = make_subplots(
-    rows=5, cols=1,
-    shared_xaxes=True,
-    vertical_spacing=0.03,
-    specs=[[{"type": "scatter"}],
-           [{"type": "scatter"}],
-           [{"type": "scatter"}],
-           [{"type": "scatter"}],
-           [{"type": "scatter"}]]
-)
+def ten_years_to_date():
+    st.session_state["period"] = "10y"
+    st.session_state["data"] = current_ticker(st.session_state.period)
 
-fig.add_trace(
-    go.Scatter(
-        x=data.Date,
-        y=data.Volume,
-        mode="lines",
-        name="Volume",
-    ),
-    row=5, col=1
-)
 
-fig.add_trace(
-    go.Scatter(
-        x=data.Date,
-        y=data.Open,
-        mode="lines",
-        name="Opening Price",
-    ),
-    row=4, col=1
-)
+def five_years_to_date():
+    st.session_state["period"] = "5y"
+    st.session_state["data"] = current_ticker(st.session_state.period)
 
-fig.add_trace(
-    go.Scatter(
-        x=data.Date,
-        y=data.High,
-        mode="lines",
-        name="Opening Price",
-    ),
-    row=3, col=1
-)
 
-fig.add_trace(
-    go.Scatter(
-        x=data.Date,
-        y=data.Low,
-        mode="lines",
-        name="Opening Price",
-    ),
-    row=2, col=1
-)
+def two_years_to_date():
+    st.session_state["period"] = "2y"
+    st.session_state["data"] = current_ticker(st.session_state.period)
 
-fig.add_trace(
-    go.Scatter(
-        x=data.Date,
-        y=data.Close,
-        mode="lines",
-        name="Closing Price",
-    ),
-    row=1, col=1
-)
 
-fig.update_layout(
-    height=900,
-    showlegend=True,
-    title_text="Opening and Closing", template="plotly_dark",
-)
+def one_year_to_date():
+    st.session_state["period"] = "1y"
+    st.session_state["data"] = current_ticker(st.session_state.period)
 
-st.header('Stock analysis')
 
-# tab1 = st.tabs(["Stock A"])
-#
+def six_months_to_date():
+    st.session_state["period"] = "6mo"
+    st.session_state["data"] = current_ticker(st.session_state.period)
+
+
+def three_months_to_date():
+    st.session_state["period"] = "3mo"
+    st.session_state["data"] = current_ticker(st.session_state.period)
+
+
+def month_to_date():
+    st.session_state["period"] = "1mo"
+    st.session_state["data"] = current_ticker(st.session_state.period)
+
+
+def five_days_to_date():
+    st.session_state["period"] = "5d"
+    st.session_state["data"] = current_ticker(st.session_state.period)
+
+
+def one_day_to_date():
+    st.session_state["period"] = "1d"
+    st.session_state["data"] = current_ticker(st.session_state.period)
+
+
+def my_figure(data):
+    my_fig = make_subplots(
+        rows=5, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.03,
+        specs=[[{"type": "scatter"}],
+               [{"type": "scatter"}],
+               [{"type": "scatter"}],
+               [{"type": "scatter"}],
+               [{"type": "scatter"}]]
+    )
+
+    my_fig.add_trace(
+        go.Scatter(
+            x=data.Date,
+            y=data.Volume,
+            mode="lines",
+            name="Volume",
+        ),
+        row=5, col=1
+    )
+
+    my_fig.add_trace(
+        go.Scatter(
+            x=data.Date,
+            y=data.Open,
+            mode="lines",
+            name="Opening Price",
+        ),
+        row=4, col=1
+    )
+
+    my_fig.add_trace(
+        go.Scatter(
+            x=data.Date,
+            y=data.High,
+            mode="lines",
+            name="Opening Price",
+        ),
+        row=3, col=1
+    )
+
+    my_fig.add_trace(
+        go.Scatter(
+            x=data.Date,
+            y=data.Low,
+            mode="lines",
+            name="Opening Price",
+        ),
+        row=2, col=1
+    )
+
+    my_fig.add_trace(
+        go.Scatter(
+            x=data.Date,
+            y=data.Close,
+            mode="lines",
+            name="Closing Price",
+        ),
+        row=1, col=1
+    )
+    print(f"{st.session_state.ticker} b4 fig")
+    my_fig.update_layout(
+        height=900,
+        showlegend=True,
+        title_text=f"{st.session_state.ticker} Opening and Closing", template="plotly_dark",
+    )
+    return my_fig
+
+
+st.header('S&P 500 Stocks')
+
+with st.sidebar:
+    st.session_state["ticker"] = st.selectbox("Stocks", tuple(ticker_names))
+    st.button("Maximum Dates", on_click=all_time)
+    st.button("10 years to date", on_click=ten_years_to_date)
+    st.button("5 years to date", on_click=five_years_to_date)
+    st.button("2 Years to date", on_click=two_years_to_date)
+    st.button("1 year to date", on_click=one_year_to_date)
+    st.button("6 Months to date", on_click=six_months_to_date)
+    st.button("3 Months to date", on_click=three_months_to_date)
+    st.button("1 Month to date", on_click=month_to_date)
+    st.button("5 days to date", on_click=five_days_to_date)
+    st.button("1 day to date", on_click=one_day_to_date)
+
 with st.container():
+    change_ticker()
+    current_data = st.session_state.data
+    fig = my_figure(current_data)
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 with st.container():
-    st.dataframe(data[["Date", "Open", "High", "Low", "Close", "Volume"]], width=1400)
-
-with st.sidebar:
-    options = st.selectbox(label="Stocks", options=ticker_names, on_change=change_ticker)
-    # start = st.date_input("Select start date:")
-    # end = st.date_input("Select end date:", datetime.date(year, month, day))
-    # st.button("Change Dates", on_click=update_dates(start, end))
-    # print(f"{options}")
+    st.dataframe(current_data[["Date", "Open", "High", "Low", "Close", "Volume"]], width=1400)
