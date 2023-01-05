@@ -123,8 +123,7 @@ def one_day_to_date():
     st.session_state["data"] = current_ticker(st.session_state.period)
 
 
-tab1, tab2, tab3 = st.tabs(["S&P 500", "Information", "News"])
-
+tab1, tab2 = st.tabs(["S&P 500", "Information"])
 
 s_and_p_500_symbols = stock_symbols()
 
@@ -190,7 +189,6 @@ with tab1:
     col1, col2 = st.columns(spec=2, gap="small")
     col3, col4 = st.columns(spec=2, gap="small")
     with st.container():
-
         with col1:
             fig_history = go.Figure(data=[go.Ohlc(x=history.index,
                                                   open=history['Open'], high=history['High'],
@@ -208,8 +206,7 @@ with tab1:
         with col2:
             fig_volumes = px.bar(history, x=history.index, y="Volume", height=500,
                                  title=f"{ticker_stock['Security']} Stock Volume",
-                                 labels={"value": "Volume"},
-                                 template="plotly_white", color="Volume")
+                                 labels={"value": "Volume"})
             st.plotly_chart(fig_volumes, use_container_width=True)
             with st.expander("Chart Information"):
                 st.write("This chart displays the trading volume for a financial security over a given time period. "
