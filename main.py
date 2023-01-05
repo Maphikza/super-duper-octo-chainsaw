@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import yfinance as yf
 import pandas as pd
 
-st.set_page_config(page_title="Stock Charts Test", layout="wide", initial_sidebar_state="auto")
+st.set_page_config(page_title="S&P 500 Stocks", layout="wide", initial_sidebar_state="auto", page_icon=":chart:")
 st.header('S&P 500')
 ticker_names = ['A', 'AAL', 'AAP', 'AAPL', 'ABBV', 'ABC', 'ABMD', 'ABT', 'ACGL', 'ACN', 'ADBE', 'ADI', 'ADM', 'ADP',
                 'ADSK', 'AEE', 'AEP', 'AES', 'AFL', 'AIG', 'AIZ', 'AJG', 'AKAM', 'ALB', 'ALGN', 'ALK', 'ALL', 'ALLE',
