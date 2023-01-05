@@ -123,13 +123,10 @@ def one_day_to_date():
     st.session_state["data"] = current_ticker(st.session_state.period)
 
 
-tab1, tab2 = st.tabs(["S&P 500", "Information"])
+tab1, tab2, tab3 = st.tabs(["S&P 500", "Information", "News"])
 
-col1, col2 = st.columns(spec=2, gap="small")
-col3, col4 = st.columns(spec=2, gap="small")
 
 s_and_p_500_symbols = stock_symbols()
-# ticker_stock = s_and_p_500_symbols.loc[st.session_state.ticker]
 
 with st.sidebar:
     st.session_state["ticker"] = st.selectbox("Stock Tickers".upper(), tuple(ticker_names))
@@ -163,8 +160,10 @@ with st.sidebar:
     st.subheader("Stock Symbol Information")
     st.write(f"SECURITY :  {ticker_stock['Security']}")
     st.write(f"SECTOR :  {ticker_stock['GICS Sector']}")
+    st.write(f"SUB-INDUSTRY :  {ticker_stock['GICS Sub-Industry']}")
     st.write(f"HEADQUARTERS :  {ticker_stock['Headquarters Location']}")
     st.write(f"FOUNDED : {ticker_stock['Founded']}")
+    st.write(f"DATE FIRST ADDED : {ticker_stock['Date first added']}")
 
 
 @st.cache
@@ -180,7 +179,18 @@ def full_data():
 history, actions, institutional_holders = full_data()
 
 with tab1:
+    with st.expander(f"{ticker_stock['Security']} Institutional Stock Ownership"):
+        institute_data = institutional_holders
+        st.dataframe(institute_data[["Holder", "Shares", "Date Reported", "% Out", "Value"]], width=1400)
+
+    with st.expander(f"{ticker_stock['Security']} Daily Stock Performance"):
+        data = history.reset_index().sort_values(by="Date", ascending=False)
+        st.dataframe(data[["Date", "Open", "High", "Low", "Close", "Volume"]], width=1400)
+
+    col1, col2 = st.columns(spec=2, gap="small")
+    col3, col4 = st.columns(spec=2, gap="small")
     with st.container():
+
         with col1:
             fig_history = go.Figure(data=[go.Ohlc(x=history.index,
                                                   open=history['Open'], high=history['High'],
@@ -192,8 +202,8 @@ with tab1:
             st.plotly_chart(fig_history, theme="streamlit", use_container_width=True)
             with st.expander("Chart Information"):
                 st.write("This chart displays the price movement of a financial security over a given time period. "
-                         "The market open, close, high, and low for each trading day are plotted. This chart can be "
-                         "used to visualize the price trends and patterns of the security being tracked.")
+                         "The market open, close, high, and low for each trading day are plotted. This chart"
+                         " visualizes the price trends and patterns of the security being tracked.")
 
         with col2:
             fig_volumes = px.bar(history, x=history.index, y="Volume", height=500,
@@ -224,31 +234,94 @@ with tab1:
             with st.expander("Stock Splits Chart Information"):
                 st.write("This chart displays the stock split history of a company over a given time period. A stock "
                          "split is a corporate action in which a company increases the number of its outstanding "
-                         "shares by issuing more shares to its shareholders. The stock split is typically done in a "
+                         "shares by issuing more shares to its shareholders.\n\n The stock split is typically done in a"
                          "ratio, such as 2-for-1, which means that for every 1 share owned, the shareholder receives "
                          "an additional 2 shares. Stock splits are often done to make the stock more affordable for "
-                         "individual investors and to increase the liquidity of the stock. On the chart, "
+                         "individual investors and to increase the liquidity of the stock.\n\n On the chart, "
                          "the stock split ratio is plotted on the y-axis (vertical axis), while the time period is "
                          "plotted on the x-axis (horizontal axis). This chart visualizes the company's stock split "
                          "history and can provide insight into its financial and strategic decision-making.")
 
-        with st.expander(f"{ticker_stock['Security']} Institutional Stock Ownership"):
-            institute_data = institutional_holders
-            st.dataframe(institute_data[["Holder", "Shares", "Date Reported", "% Out", "Value"]], width=1400)
-
-        with st.expander(f"{ticker_stock['Security']} Daily Stock Performance"):
-            data = history.reset_index().sort_values(by="Date", ascending=False)
-            st.dataframe(data[["Date", "Open", "High", "Low", "Close", "Volume"]], width=1400)
-
 with tab2:
     with st.container():
-        st.write("The S&P 500 (Standard & Poor's 500) index is a market-capitalization-weighted index of 500 leading "
-                 "publicly traded companies in the U.S. The index is widely considered to be a gauge of the overall "
-                 "U.S. stock market, as it includes a broad range of industries and sectors. The S&P 500 is "
-                 "calculated by Standard & Poor's, a division of S&P Global, which is a financial services company "
-                 "that provides information and analytics to investors. The companies included in the index are "
-                 "chosen based on a number of criteria, such as market capitalization, financial strength, "
-                 "and liquidity. The index is weighted by market capitalization, which means that the larger the "
-                 "company, the more influence it has on the index. The S&P 500 is often used as a benchmark for the "
-                 "performance of the U.S. stock market, and it is one of the most widely followed indexes in the "
-                 "world.")
+        st.write("Welcome to the information section on the S&P 500 Index and stock investment terms!\n\n This "
+                 "section is designed to provide background understanding for those interested in learning about "
+                 "these concepts. It is not intended to be financial or investment advice, but rather a resource "
+                 "for gaining a better understanding of the S&P 500 Index and the terms used in the world of stock "
+                 "investing.")
+        with st.expander("What is the S&P 500 Index"):
+            st.write("The S&P 500 (Standard & Poor's 500) index is a market-capitalization-weighted index of 500 "
+                     "leading publicly traded companies in the U.S. The index is widely considered to be a gauge of "
+                     "the overall U.S. stock market, as it includes a broad range of industries and sectors.\n\n"
+                     "The S&P 500 is calculated by Standard & Poor's, a division of S&P Global, which is a financial "
+                     "services company"
+                     "that provides information and analytics to investors. The companies included in the index are "
+                     "chosen based on a number of criteria, such as market capitalization, financial strength, "
+                     "and liquidity. \n\nThe index is weighted by market capitalization, which means that the larger "
+                     "the"
+                     "company, the more influence it has on the index. The S&P 500 is often used as a benchmark for the"
+                     "performance of the U.S. stock market, and it is one of the most widely followed indexes in the "
+                     "world.")
+
+        with st.expander("What is a Market-Capitalization-Weighted index"):
+            st.write("A market-capitalization-weighted index is an index where the weight of each component security "
+                     "is proportional to its market capitalization.\n\n Market capitalization is the value of a "
+                     "company's"
+                     "outstanding shares of stock, and it is calculated by multiplying the number of shares by the "
+                     "current market price of one share. For example, if a company has 1 million shares of stock "
+                     "outstanding and the market price of each share is 50 Dollars, the company's market capitalization"
+                     "would be 50 million dollars. \n\n In a market-capitalization-weighted index, the companies with "
+                     "the"
+                     "highest"
+                     "market capitalization have the greatest influence on the index. For example, in the S&P 500 "
+                     "index, the largest companies by market capitalization, such as Apple and Microsoft, "
+                     "have a greater impact on the index than smaller companies. This is because the index is "
+                     "calculated based on the market capitalizations of the component companies, so the companies "
+                     "with the largest market caps make up a larger portion of the index. \n\nTo calculate the value "
+                     "of a"
+                     "market-capitalization-weighted index, you would take the market capitalization of each "
+                     "component company and multiply it by the index's weighting factor for that company. The "
+                     "weighting factors are typically based on the market capitalization of each company relative to "
+                     "the total market capitalization of all the companies in the index. The resulting values are "
+                     "then summed to give the overall value of the index.")
+
+        with st.expander("What is Day Trading"):
+            st.write("Day trading is a trading strategy where an investor buys and sells financial instruments within "
+                     "the same trading day. The goal of day traders is to make profits by taking advantage of small "
+                     "price movements in highly liquid stocks or other financial instruments.\n\n Day traders "
+                     "typically hold their positions for a few hours to a few days at most, and they close out all "
+                     "positions before the market close to avoid any overnight risk. Because they hold their "
+                     "positions for such a short time, day traders typically look for liquid instruments that they "
+                     "can buy and sell quickly to take advantage of the price movements.")
+
+        with st.expander("What are liquid instruments"):
+            st.write("Liquid instruments are financial instruments that can be easily bought or sold on the market "
+                     "without affecting the asset's price. In other words, there is a high level of liquidity for "
+                     "these instruments, which means that there are many buyers and sellers available at any given "
+                     "time, and the spread between the bid and ask prices is usually small. \n\nSome examples of "
+                     "liquid instruments include major currency pairs in the forex market, large cap stocks listed on "
+                     "major stock exchanges, and government bonds. These instruments are considered liquid because "
+                     "there are many market participants trading them, which creates a deep and liquid market.")
+
+        with st.expander("My opinion on Day Trading"):
+            st.write("Day trading can be an exciting and potentially lucrative activity, but it is important to keep "
+                     "in mind that it is not without its risks. According to a study of Brazilian day traders, "
+                     "97% of those who were in the market for more than 300 days lost money, with only 1.1% ending up "
+                     "profitable. These statistics highlight the inherent challenges and risks of day trading, "
+                     "and suggest that success in the market is not guaranteed.\n\n Many amateur day traders may not "
+                     "fully understand the complexities of the market or have a solid investment strategy, "
+                     "leading to poor decision making and potential financial losses. It is essential for day "
+                     "traders, particularly those who are just starting out, to thoroughly educate themselves and "
+                     "have a clear plan in place to minimize risks and maximize profits. Even professional traders "
+                     "with decades of experience can be caught off guard by the unpredictable nature of the market, "
+                     "so it is important for all day traders to be aware of the potential for 'pain trades' - market "
+                     "movements that cause the most financial hardship to the most people. Overall, it is crucial for "
+                     "day traders to approach the market with caution and a solid understanding of the risks and "
+                     "potential rewards.\n\n I am a firm believer in the benefits of long term value investing. While "
+                     "day trading and other short term strategies may offer the potential for quick profits, "
+                     "they also come with a higher level of risk. In contrast, long term value investing allows for a "
+                     "slower and steadier approach, and requires a deeper understanding of a company's fundamentals. "
+                     "While it may not offer the same thrill as day trading, I believe it is a safer and ultimately "
+                     "more successful strategy for building wealth over time. It is important to recognize that there "
+                     "is no 'low risk, get rich quick' scheme in the world of investing. Good things take time, "
+                     "and a measured and well-informed approach is the key to long term success.")
