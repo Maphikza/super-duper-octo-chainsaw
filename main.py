@@ -267,7 +267,7 @@ with tab2:
                      "major stock exchanges, and government bonds. These instruments are considered liquid because "
                      "there are many market participants trading them, which creates a deep and liquid market.")
 
-        with st.expander("My opinion on Day Trading"):
+        with st.expander("Thoughts on Day Trading"):
             st.write("Day trading can be an exciting and potentially lucrative activity, but it is important to keep "
                      "in mind that it is not without its risks. According to a study of Brazilian day traders, "
                      "97% of those who were in the market for more than 300 days lost money, with only 1.1% ending up "
