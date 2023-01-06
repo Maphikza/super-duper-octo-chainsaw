@@ -129,6 +129,7 @@ with st.sidebar:
     st.write(f"HEADQUARTERS :  {ticker_stock['Headquarters Location']}")
     st.write(f"FOUNDED : {ticker_stock['Founded']}")
     st.write(f"DATE FIRST ADDED : {ticker_stock['Date first added']}")
+    st.write(f"CIK : {ticker_stock['CIK']}")
 
 
 @st.cache
