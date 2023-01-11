@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import yfinance as yf
 import pandas as pd
+from numerize import numerize
 
 st.set_page_config(page_title="S&P 500 Stocks", layout="wide", initial_sidebar_state="auto", page_icon=":chart:")
 st.header('S&P 500')
@@ -15,6 +16,13 @@ def stock_symbols():
     symbol_names = sorted(list(symbols.index))
     return symbols, symbol_names
 
+
+def outstanding_shares():
+    shares = pd.read_csv("Outstanding_shares.csv").set_index("Unnamed: 0")
+    return shares
+
+
+shares_outstanding = outstanding_shares()
 
 s_and_p_500_symbols, ticker_names = stock_symbols()
 
@@ -121,7 +129,7 @@ with st.sidebar:
         one_day_to_date()
     else:
         all_time()
-
+    outstanding_share_number = shares_outstanding.loc[st.session_state['ticker']]['Raw_outstanding_share_vals']
     st.subheader("Stock Symbol Information")
     st.write(f"SECURITY :  {ticker_stock['Security']}")
     st.write(f"SECTOR :  {ticker_stock['GICS Sector']}")
@@ -130,6 +138,7 @@ with st.sidebar:
     st.write(f"FOUNDED : {ticker_stock['Founded']}")
     st.write(f"DATE FIRST ADDED : {ticker_stock['Date first added']}")
     st.write(f"CIK : {ticker_stock['CIK']}")
+    st.write(f"Outstanding Shares: {outstanding_share_number}")
 
 
 @st.cache
@@ -143,8 +152,11 @@ def full_data():
 
 
 history, actions, institutional_holders = full_data()
-
+latest_close = history['Close'].tail().values[0]
+market_cap = numerize.numerize(outstanding_share_number * latest_close)
+print(market_cap)
 with tab1:
+    st.write(f"{ticker_stock['Security']}'s Markets cap at closing was {market_cap}.")
     with st.expander(f"{ticker_stock['Security']} Institutional Stock Ownership"):
         institute_data = institutional_holders
         st.dataframe(institute_data[["Holder", "Shares", "Date Reported", "% Out", "Value"]], width=1400)
