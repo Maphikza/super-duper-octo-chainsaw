@@ -18,7 +18,9 @@ def stock_symbols():
 
 
 def outstanding_shares():
-    shares = pd.read_csv("Outstanding_shares.csv").set_index("Unnamed: 0")
+    shares = pd.read_csv("Shares_Outstanding.csv").set_index("Unnamed: 0")
+    index = shares["Symbols"]
+    shares.set_index(index, inplace=True)
     return shares
 
 
@@ -129,21 +131,27 @@ with st.sidebar:
         one_day_to_date()
     else:
         all_time()
-    outstanding_share_number = shares_outstanding.loc[st.session_state['ticker']]['Raw_outstanding_share_vals']
+    try:
+        outstanding_share_number = shares_outstanding.loc[st.session_state['ticker']]['Raw_outstanding_share_vals']
+    except KeyError:
+        outstanding_share_number = "Value Missing"
     st.subheader("Stock Symbol Information")
     st.write(f"SECURITY :  {ticker_stock['Security']}")
     st.write(f"SECTOR :  {ticker_stock['GICS Sector']}")
     st.write(f"SUB-INDUSTRY :  {ticker_stock['GICS Sub-Industry']}")
     st.write(f"HEADQUARTERS :  {ticker_stock['Headquarters Location']}")
     st.write(f"FOUNDED : {ticker_stock['Founded']}")
-    st.write(f"DATE FIRST ADDED : {ticker_stock['Date first added']}")
+    st.write(f"DATE FIRST ADDED : {ticker_stock['Date added']}")
     st.write(f"CIK : {ticker_stock['CIK']}")
     st.write(f"Outstanding Shares: {outstanding_share_number}")
 
 
 @st.cache
 def full_data():
-    ticker_ = yf.Ticker(st.session_state.ticker)
+    if st.session_state.ticker == "BRK.B":
+        ticker_ = yf.Ticker("BRK-B")
+    else:
+        ticker_ = yf.Ticker(st.session_state.ticker)
     ticker_history = ticker_.history(period=st.session_state.period)
     ticker_actions = ticker_.actions
     institution_share_holders = ticker_.institutional_holders
@@ -153,10 +161,29 @@ def full_data():
 
 history, actions, institutional_holders = full_data()
 latest_close = history['Close'].tail().values[0]
-market_cap = numerize.numerize(outstanding_share_number * latest_close)
-print(market_cap)
+
+
+@st.cache
+def google_tick():
+    goog = yf.Ticker("GOOG").history(period="max")["Close"].tail(1).values[0]
+    googl = yf.Ticker("GOOGL").history(period="max")["Close"].tail(1).values[0]
+    closing_price = goog + googl
+    return closing_price
+
+
+google_close = google_tick()
+
 with tab1:
-    st.write(f"{ticker_stock['Security']}'s Markets cap at closing was {market_cap}.")
+    try:
+        if st.session_state['ticker'] == "GOOGL":
+            market_cap = numerize.numerize(outstanding_share_number * google_close)
+            st.write(f"{ticker_stock['Security']}'s Markets cap at closing was {market_cap}.")
+        else:
+            market_cap = numerize.numerize(outstanding_share_number * latest_close)
+            st.write(f"{ticker_stock['Security']}'s Markets cap at closing was {market_cap}.")
+    except TypeError:
+        pass
+
     with st.expander(f"{ticker_stock['Security']} Institutional Stock Ownership"):
         institute_data = institutional_holders
         st.dataframe(institute_data[["Holder", "Shares", "Date Reported", "% Out", "Value"]], width=1400)
@@ -220,7 +247,7 @@ with tab1:
 
 with tab2:
     with st.container():
-        st.write("Welcome to the information section on the S&P 500 Index and stock investment terms!\n\n This "
+        st.write("Welcome to the information section!\n\n This "
                  "section is designed to provide background understanding for those interested in learning about "
                  "these concepts. It is not intended to be financial or investment advice, but rather a resource "
                  "for gaining a better understanding of the S&P 500 Index and the terms used in the world of stock "
