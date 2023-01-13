@@ -11,8 +11,13 @@ st.header('S&P 500')
 
 @st.cache
 def stock_symbols():
-    symbols = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
-    symbols.set_index("Symbol", inplace=True)
+    try:
+        symbols = pd.read_csv("Symbols_data.csv")
+        symbols.set_index("Symbol", inplace=True)
+    except FileNotFoundError:
+        symbols = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
+        symbols.set_index("Symbol", inplace=True)
+        symbols.to_csv("Symbols_data.csv")
     symbol_names = sorted(list(symbols.index))
     return symbols, symbol_names
 
