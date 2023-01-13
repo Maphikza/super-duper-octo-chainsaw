@@ -101,7 +101,7 @@ def one_day_to_date():
     st.session_state["data"] = current_ticker(st.session_state.period)
 
 
-tab1, tab2 = st.tabs(["S&P 500", "Information"])
+tab1, tab2, tab3 = st.tabs(["S&P 500", "Information", "Analysis"])
 
 with st.sidebar:
     st.session_state["ticker"] = st.selectbox("Stock Tickers".upper(), tuple(ticker_names))
@@ -328,3 +328,82 @@ with tab2:
                      "more successful strategy for building wealth over time. It is important to recognize that there "
                      "is no 'low risk, get rich quick' scheme in the world of investing. Good things take time, "
                      "and a measured and well-informed approach is the key to long term success.")
+
+with tab3:
+    top_mkt_cap_list = ['AAPL', 'MSFT', 'AMZN', 'UNH', 'XOM', 'JNJ', 'JPM', 'WMT', 'NVDA', 'TSLA', 'MA', 'PG', 'LLY',
+                        'CVX', 'HD', 'MRK', 'ABBV', 'BAC', 'KO', 'PFE', 'BRK-A', 'BRK-B', 'BF-A', 'BF-B', 'GOOGL',
+                        'GOOG']
+    sectors = pd.DataFrame(s_and_p_500_symbols["GICS Sector"].value_counts()).sort_values(by="GICS Sector",
+                                                                                          ascending=False)
+    st.write("Making stock analysis accessible to the general public is a complex task that poses several challenges. "
+             "One of the main obstacles is obtaining accurate and up-to-date data. Currently, the data used for "
+             "analysis is often scraped from the internet, which can lead to inconsistencies and inaccuracies. To "
+             "overcome this challenge, I am constantly refining my methods and exploring new ways to obtain accurate "
+             "and timely data. Additionally, I am working to expand the scope of my analysis by incorporating a wider "
+             "range of data sources to provide a more comprehensive picture of the market.")
+    fig_sector = px.bar(sectors,
+                        y=sectors.index,
+                        x="GICS Sector",
+                        color=sectors.index,
+                        height=600,
+                        labels={"index": "Sectors"},
+                        title="S&P 500 Company Sectors",
+                        text_auto='.2s', template="plotly_dark")
+    st.plotly_chart(fig_sector, theme="streamlit", use_container_width=True)
+
+
+    @st.cache
+    def closing_prices():
+        closing_price_list = []
+
+        for symbol in top_mkt_cap_list:
+            try:
+                closing_price_list.append(yf.Ticker(symbol).history(period="max")["Close"].tail(1).values[0])
+            except IndexError:
+                closing_price_list.append(symbol)
+        return closing_price_list
+
+
+    prices_at_close = closing_prices()
+    closing_tickers_data = {"Symbols": top_mkt_cap_list, "Closing_price": prices_at_close}
+    df_symbol_close = pd.DataFrame(data=closing_tickers_data)
+    df_symbol_close.loc[21, "Symbols"] = "BRK.B"
+    df_symbol_close.set_index("Symbols", inplace=True)
+    df_symbol_close.loc["GOOGL", "Closing_price"] = df_symbol_close.loc["GOOGL", "Closing_price"] + df_symbol_close.loc[
+        "GOOG", "Closing_price"]
+    df_symbol_close.index.names = ["index"]
+    shares_outstanding.index.names = ["index"]
+
+    merged_price_and_outstanding_shares = df_symbol_close.merge(shares_outstanding, how="inner", on="index").drop(
+        columns=["Oustanding_Shares", "Source_urls"])
+    merged_price_and_outstanding_shares["Market_cap"] = merged_price_and_outstanding_shares["Closing_price"] * \
+                                                        merged_price_and_outstanding_shares[
+                                                            "Raw_outstanding_share_vals"]
+    merged_price_and_outstanding_shares.sort_values(by="Market_cap", ascending=False, inplace=True)
+
+
+    def format_market_cap(market_caps):
+        units = ['', 'K', 'M', 'B', 'T']
+        i = 0
+        while market_caps >= 1000:
+            market_caps /= 1000
+            i += 1
+        return f"{market_caps:.2f}{units[i]}"
+
+
+    merged_price_and_outstanding_shares["Formatted_Cap"] = merged_price_and_outstanding_shares["Market_cap"].apply(
+        format_market_cap)
+    merged_price_and_outstanding_shares.set_index("Symbols", inplace=True)
+    top_10_mkt_caps = merged_price_and_outstanding_shares.head(10)
+
+    fig_index_weight = px.bar(top_10_mkt_caps,
+                              x="Market_cap",
+                              y=top_10_mkt_caps.index,
+                              orientation="h",
+                              color=top_10_mkt_caps.index,
+                              height=600,
+                              text='Formatted_Cap',
+                              template="plotly_dark",
+                              title="Top 10 S&P 500 companies by Index Weight.",
+                              labels={"Market_cap": "Market Cap", "Symbols": "Companies"})
+    st.plotly_chart(fig_index_weight, theme="streamlit", use_container_width=True)
