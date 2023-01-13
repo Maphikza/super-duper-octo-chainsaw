@@ -148,7 +148,7 @@ with st.sidebar:
     st.write(f"FOUNDED : {ticker_stock['Founded']}")
     st.write(f"DATE FIRST ADDED : {ticker_stock['Date added']}")
     st.write(f"CIK : {ticker_stock['CIK']}")
-    st.write(f"Outstanding Shares: {outstanding_share_number}")
+    st.write(f"Outstanding Shares: {outstanding_share_number:,}")
 
 
 @st.cache
